@@ -16,7 +16,7 @@ return [
         'follow_us' => 'Bizi Takip Et',
         'footer_logo_alt' => 'Velstore Alt Bilgi Logo',
         'copyright' => '© 2025 Velstore Demo. Tüm hakları saklıdır.',
-        'powered_by' => 'Velstore Labs tarafından sağlanmaktadır',
+        'powered_by' => 'Owr Digi tarafından sağlanmaktadır',
     ],
 
     'home' => [

@@ -16,7 +16,7 @@ return [
         'follow_us' => '팔로우하기',
         'footer_logo_alt' => 'Velstore 푸터 로고',
         'copyright' => '© 2025 Velstore Demo. 모든 권리 보유.',
-        'powered_by' => 'Velstore Labs 제공',
+        'powered_by' => 'Owr Digi 제공',
     ],
 
     'home' => [

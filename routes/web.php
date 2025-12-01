@@ -21,6 +21,8 @@ use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\Admin\RefundController;
 use App\Http\Controllers\Admin\SocialMediaLinkController;
 use App\Http\Controllers\Admin\VendorController;
+use App\Http\Controllers\Admin\ShopController;
+use App\Http\Controllers\Admin\HeroSlideController;
 use App\Http\Controllers\SiteSettingsController;
 use Illuminate\Support\Facades\Route;
 
@@ -35,7 +37,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-/* require base_path('routes/store.php'); */
+require base_path('routes/store.php');
 
 Route::get('/login', function () {
     return view('admin.auth.login');
@@ -84,6 +86,11 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
     Route::put('/banners/toggle-status/{id}', [BannerController::class, 'toggleStatus'])->name('banners.toggleStatus');
     Route::post('/banners/update-status', [BannerController::class, 'updateStatus'])->name('banners.updateStatus');
 
+    /* Hero Slides */
+    Route::resource('hero-slides', HeroSlideController::class);
+    Route::post('hero-slides/update-order', [HeroSlideController::class, 'updateOrder'])->name('hero-slides.update-order');
+    Route::post('hero-slides/{heroSlide}/toggle-status', [HeroSlideController::class, 'toggleStatus'])->name('hero-slides.toggle-status');
+
     /* Social Media Links */
     Route::resource('social-media-links', SocialMediaLinkController::class);
     Route::post('social-media-links/data', [SocialMediaLinkController::class, 'getData'])->name('social-media-links.data');
@@ -120,9 +127,23 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
     /* Vendors */
     Route::get('vendors', [VendorController::class, 'index'])->name('vendors.index');
     Route::get('vendors/data', [VendorController::class, 'getVendorData'])->name('vendors.data');
+    Route::get('vendors/{id}', [VendorController::class, 'show'])->name('vendors.show');
     Route::delete('vendors/{id}', [VendorController::class, 'destroy'])->name('vendors.destroy');
     Route::get('vendors/create', [VendorController::class, 'create'])->name('vendors.create');
     Route::post('vendors', [VendorController::class, 'store'])->name('vendors.store');
+    Route::post('vendors/{id}/approve', [VendorController::class, 'approve'])->name('vendors.approve');
+    Route::post('vendors/{id}/reject', [VendorController::class, 'reject'])->name('vendors.reject');
+    Route::post('vendors/{id}/suspend', [VendorController::class, 'suspend'])->name('vendors.suspend');
+    Route::post('vendors/{id}/ban', [VendorController::class, 'ban'])->name('vendors.ban');
+    Route::patch('vendors/{id}/commission', [VendorController::class, 'updateCommission'])->name('vendors.commission');
+
+    /* Shops */
+    Route::get('shops', [ShopController::class, 'index'])->name('shops.index');
+    Route::get('shops/data', [ShopController::class, 'getData'])->name('shops.data');
+    Route::get('shops/{id}', [ShopController::class, 'show'])->name('shops.show');
+    Route::post('shops/{id}/approve', [ShopController::class, 'approve'])->name('shops.approve');
+    Route::post('shops/{id}/reject', [ShopController::class, 'reject'])->name('shops.reject');
+    Route::post('shops/{id}/suspend', [ShopController::class, 'suspend'])->name('shops.suspend');
 
     /* Pages */
     Route::resource('pages', PageController::class);
@@ -158,12 +179,3 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
 Route::get('site-settings', [SiteSettingsController::class, 'index'])->name('site-settings.index');
 Route::get('site-settings/edit', [SiteSettingsController::class, 'edit'])->name('admin.site-settings.edit');
 Route::put('site-settings/update', [SiteSettingsController::class, 'update'])->name('admin.site-settings.update');
-
-Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
-Route::post('/checkout/process', [CheckoutController::class, 'process'])->name('checkout.process');
-// PayPal success callback
-Route::get('/checkout/paypal/success', [CheckoutController::class, 'paypalSuccess'])
-    ->name('paypal.success');
-// PayPal cancel callback
-Route::get('/checkout/paypal/cancel', [CheckoutController::class, 'paypalCancel'])
-    ->name('paypal.cancel');

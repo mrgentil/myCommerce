@@ -52,6 +52,22 @@ class Product extends Model
         return $this->belongsTo(Brand::class);
     }
 
+    /**
+     * Get the shop for the product.
+     */
+    public function shop()
+    {
+        return $this->belongsTo(Shop::class);
+    }
+
+    /**
+     * Get the vendor for the product.
+     */
+    public function vendor()
+    {
+        return $this->belongsTo(Vendor::class);
+    }
+
     public function orders()
     {
         return $this->hasMany(Order::class);

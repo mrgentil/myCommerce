@@ -1,5 +1,7 @@
 document.addEventListener('DOMContentLoaded', function () {
-    const bannerArea = document.querySelector('.banner-area');
+    const bannerArea = document.querySelector('.banner-area') || document.querySelector('.hero-section');
+    
+    if (!bannerArea) return; // Exit if no banner area found
 
     // Variables to hold target and current positions
     let targetX = 0,
@@ -13,8 +15,8 @@ document.addEventListener('DOMContentLoaded', function () {
         const activeSlide = bannerArea.querySelector('.slick-active');
         if (!activeSlide) return;
 
-        // Find the container holding the shoe image inside the active slide
-        const container = activeSlide.querySelector('.rightimg-banner1 img, .rightimg-banner2 img');
+        // Find the container holding the image inside the active slide
+        const container = activeSlide.querySelector('.rightimg-banner1 img, .rightimg-banner2 img, .hero-image');
         if (!container) return;
 
         // Get container dimensions and position
@@ -41,10 +43,10 @@ document.addEventListener('DOMContentLoaded', function () {
         currentX += (targetX - currentX) * ease;
         currentY += (targetY - currentY) * ease;
 
-        // Apply transform to the shoe image in the active slide
+        // Apply transform to the image in the active slide
         const activeSlide = bannerArea.querySelector('.slick-active');
         if (activeSlide) {
-            const shoeImage = activeSlide.querySelector('.rightimg-banner img');
+            const shoeImage = activeSlide.querySelector('.rightimg-banner img, .hero-image');
             if (shoeImage) {
                 shoeImage.style.transform = `translate(${currentX}px, ${currentY}px)`;
             }

@@ -27,10 +27,11 @@ class UpdateProfileRequest extends FormRequest
                 Rule::unique('users', 'email')->ignore($admin->id),
             ],
             'phone' => ['nullable', 'string', 'max:20'],
-            'profile_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
+            'profile_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,gif,webp', 'max:2048'],
 
-            'current_password' => ['required', 'string'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            // Password fields are optional - only validate if provided
+            'current_password' => ['nullable', 'string', 'required_with:password'],
+            'password' => ['nullable', 'string', 'min:8', 'confirmed'],
         ];
     }
 
@@ -51,10 +52,12 @@ class UpdateProfileRequest extends FormRequest
     public function withValidator($validator): void
     {
         $validator->after(function ($validator) {
-            $admin = Auth::user();
-
-            if (! Hash::check($this->current_password, $admin->password)) {
-                $validator->errors()->add('current_password', __('validation.incorrect_current_password'));
+            // Only check current password if user is trying to change password
+            if ($this->filled('password') && $this->filled('current_password')) {
+                $admin = Auth::user();
+                if (! Hash::check($this->current_password, $admin->password)) {
+                    $validator->errors()->add('current_password', 'Le mot de passe actuel est incorrect.');
+                }
             }
         });
     }

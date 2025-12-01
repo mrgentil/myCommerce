@@ -72,8 +72,19 @@ class ProductController extends Controller
 
     public function store(Request $request)
     {
-        $defaultLang = config('app.locale');
         $vendorId = Auth::guard('vendor')->id();
+        
+        // Find the first language with a name filled (user's active language)
+        $primaryLang = null;
+        foreach ($request->input('translations', []) as $lang => $data) {
+            if (!empty($data['name'])) {
+                $primaryLang = $lang;
+                break;
+            }
+        }
+        
+        // Fallback to app locale if no translation found
+        $defaultLang = $primaryLang ?? app()->getLocale();
 
         $rules = [
             'category_id' => 'required|exists:categories,id',
@@ -93,18 +104,30 @@ class ProductController extends Controller
             'variants.*.color_id' => 'nullable|exists:attribute_values,id',
         ];
 
+        // At least one translation with name is required
+        $hasAtLeastOneName = false;
         foreach ($request->input('translations', []) as $lang => $data) {
-            $rules["translations.$lang.name"] = 'required|string|max:255';
-            $rules["translations.$lang.description"] = 'required|string|min:5';
+            if (!empty($data['name'])) {
+                $hasAtLeastOneName = true;
+                break;
+            }
+        }
+        
+        if (!$hasAtLeastOneName) {
+            return back()->withErrors(['translations' => 'Veuillez remplir le nom du produit dans au moins une langue.'])->withInput();
         }
 
         $validated = $request->validate($rules);
 
         DB::transaction(function () use ($request, $defaultLang, $vendorId) {
             $slug = $this->generateUniqueSlug($request->translations[$defaultLang]['name']);
+            
+            // Get vendor's shop
+            $vendor = Auth::guard('vendor')->user();
+            $shopId = $vendor->shop ? $vendor->shop->id : null;
 
             $product = Product::create([
-                'shop_id' => 1,
+                'shop_id' => $shopId,
                 'vendor_id' => $vendorId,
                 'slug' => $slug,
                 'category_id' => $request->category_id,
@@ -113,13 +136,16 @@ class ProductController extends Controller
             ]);
 
             foreach ($request->translations as $lang => $data) {
-                $product->translations()->create([
-                    'language_code' => $lang,
-                    'name' => $data['name'],
-                    'description' => $data['description'] ?? null,
-                    'short_description' => $data['short_description'] ?? null,
-                    'tags' => $data['tags'] ?? null,
-                ]);
+                // Only save translation if name is provided
+                if (!empty($data['name'])) {
+                    $product->translations()->create([
+                        'language_code' => $lang,
+                        'name' => $data['name'],
+                        'description' => $data['description'] ?? null,
+                        'short_description' => $data['short_description'] ?? null,
+                        'tags' => $data['tags'] ?? null,
+                    ]);
+                }
             }
 
             if ($request->hasFile('images')) {
@@ -251,15 +277,18 @@ class ProductController extends Controller
             ]);
 
             foreach ($request->translations as $lang => $data) {
-                $product->translations()->updateOrCreate(
-                    ['language_code' => $lang],
-                    [
-                        'name' => $data['name'],
-                        'description' => $data['description'] ?? null,
-                        'short_description' => $data['short_description'] ?? null,
-                        'tags' => $data['tags'] ?? null,
-                    ]
-                );
+                // Only save/update translation if name is provided
+                if (!empty($data['name'])) {
+                    $product->translations()->updateOrCreate(
+                        ['language_code' => $lang],
+                        [
+                            'name' => $data['name'],
+                            'description' => $data['description'] ?? null,
+                            'short_description' => $data['short_description'] ?? null,
+                            'tags' => $data['tags'] ?? null,
+                        ]
+                    );
+                }
             }
 
             if ($request->has('remove_images')) {

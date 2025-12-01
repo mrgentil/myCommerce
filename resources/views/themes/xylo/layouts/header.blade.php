@@ -43,12 +43,23 @@
                         @if ($headerMenu && $headerMenu->menuItems->count())
                             @foreach ($headerMenu->menuItems as $menuItem)
                                 <li class="nav-item">
-                                    <a class="nav-link menu-text-color" href="{{ url($menuItem->slug) }}">
+                                    <a class="nav-link menu-text-color" href="{{ $menuItem->slug === 'home' ? url('/') : url($menuItem->slug) }}">
                                         {{ $menuItem->translation->title ?? 'No Translation' }}
                                     </a>
                                 </li>
                             @endforeach
                         @endif
+                        {{-- Static menu items --}}
+                        <li class="nav-item">
+                            <a class="nav-link menu-text-color" href="{{ route('shop.index') }}">
+                                <i class="fa fa-th-large me-1"></i>Produits
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link menu-text-color" href="{{ route('shops.index') }}">
+                                <i class="fa fa-store me-1"></i>Boutiques
+                            </a>
+                        </li>
                     </ul>
                 </nav>
             </div>
@@ -90,42 +101,112 @@
                 </a>
 
                  <!-- Account Icon -->
-                <a href="#" class="text-dark dropdown-toggle homepage-icon" data-bs-toggle="dropdown">
-                    @auth('customer')
-                        @php
-                            $customer = Auth::guard('customer')->user();
-                        @endphp
-                        @if($customer->profile_image)
-                            <img src="{{ asset('storage/' . $customer->profile_image) }}" 
-                                alt="Profile" 
-                                class="rounded-circle" 
-                                style="width:32px; height:32px; object-fit:cover;">
+                @php
+                    $isAdmin = Auth::check() && Auth::user() instanceof \App\Models\User;
+                    $isVendor = Auth::guard('vendor')->check();
+                    $isCustomer = Auth::guard('customer')->check();
+                @endphp
+                <a href="#" class="text-dark dropdown-toggle homepage-icon" data-bs-toggle="dropdown" style="text-decoration: none;">
+                    @if($isAdmin)
+                        {{-- Admin User --}}
+                        @php $admin = Auth::user(); @endphp
+                        @if($admin->profile_image)
+                            <img src="{{ asset('storage/' . $admin->profile_image) }}" alt="Admin" class="rounded-circle" style="width:32px; height:32px; object-fit:cover; border: 2px solid #dc3545;">
                         @else
-                            <img src="https://ui-avatars.com/api/?name={{ urlencode($customer->name) }}" 
-                                alt="Avatar" 
-                                class="rounded-circle" 
-                                style="width:32px; height:32px; object-fit:cover;">
+                            <span class="d-inline-flex align-items-center justify-content-center rounded-circle text-white fw-bold" style="width:32px; height:32px; background-color:#dc3545; font-size:14px;">
+                                {{ strtoupper(substr($admin->name, 0, 2)) }}
+                            </span>
+                        @endif
+                    @elseif($isVendor)
+                        @php $vendor = Auth::guard('vendor')->user(); @endphp
+                        @if($vendor->profile_image)
+                            <img src="{{ asset('storage/' . $vendor->profile_image) }}" alt="Vendor" class="rounded-circle" style="width:32px; height:32px; object-fit:cover; border: 2px solid #667eea;">
+                        @else
+                            <span class="d-inline-flex align-items-center justify-content-center rounded-circle text-white fw-bold" style="width:32px; height:32px; background-color:#667eea; font-size:14px;">
+                                {{ strtoupper(substr($vendor->name, 0, 2)) }}
+                            </span>
+                        @endif
+                    @elseif($isCustomer)
+                        @php $customer = Auth::guard('customer')->user(); @endphp
+                        @if($customer->profile_image)
+                            <img src="{{ asset('storage/' . $customer->profile_image) }}" alt="Customer" class="rounded-circle" style="width:32px; height:32px; object-fit:cover; border: 2px solid #28a745;">
+                        @else
+                            <span class="d-inline-flex align-items-center justify-content-center rounded-circle text-white fw-bold" style="width:32px; height:32px; background-color:#28a745; font-size:14px;">
+                                {{ strtoupper(substr($customer->name, 0, 2)) }}
+                            </span>
                         @endif
                     @else
                         <i class="fa-regular fa-user"></i>
-                    @endauth
+                    @endif
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end p-2">
-                    @guest('customer')
-                        <li><a class="dropdown-item" href="{{ route('customer.login') }}">Sign In</a></li>
-                        <li><a class="dropdown-item" href="{{ route('customer.register') }}">Sign Up</a></li>
-                    @else
-                        <li><a class="dropdown-item" href="{{ route('customer.profile.edit') }}">My Profile</a></li>
-                        <li>
-                            <a class="dropdown-item" href="{{ route('customer.logout') }}"
-                            onclick="event.preventDefault(); document.getElementById('customer-logout-form').submit();">
-                            Logout
-                            </a>
-                            <form id="customer-logout-form" action="{{ route('customer.logout') }}" method="POST" class="d-none">
-                                @csrf
-                            </form>
+                    {{-- Admin Menu --}}
+                    @if($isAdmin)
+                        <li class="dropdown-header">
+                            <strong>{{ Auth::user()->name }}</strong>
+                            <br><small class="text-danger"><i class="fa fa-shield me-1"></i>Administrateur</small>
                         </li>
-                    @endguest
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="{{ route('admin.dashboard') }}"><i class="fa fa-dashboard me-2"></i>Dashboard Admin</a></li>
+                        <li><a class="dropdown-item" href="{{ route('admin.products.index') }}"><i class="fa fa-box me-2"></i>Produits</a></li>
+                        <li><a class="dropdown-item" href="{{ route('admin.orders.index') }}"><i class="fa fa-shopping-cart me-2"></i>Commandes</a></li>
+                        <li><a class="dropdown-item" href="{{ route('admin.vendors.index') }}"><i class="fa fa-users me-2"></i>Vendeurs</a></li>
+                        <li><a class="dropdown-item" href="{{ route('admin.shops.index') }}"><i class="fa fa-store me-2"></i>Boutiques</a></li>
+                        <li><a class="dropdown-item" href="{{ route('admin.profile.edit') }}"><i class="fa fa-user me-2"></i>Mon Profil</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item text-danger" href="{{ route('logout') }}"
+                            onclick="event.preventDefault(); document.getElementById('admin-logout-form').submit();">
+                            <i class="fa fa-sign-out me-2"></i>Déconnexion
+                            </a>
+                            <form id="admin-logout-form" action="{{ route('logout') }}" method="POST" class="d-none">@csrf</form>
+                        </li>
+                    {{-- Vendor Menu --}}
+                    @elseif($isVendor)
+                        @php $vendor = Auth::guard('vendor')->user(); @endphp
+                        <li class="dropdown-header">
+                            <strong>{{ $vendor->name }}</strong>
+                            <br><small class="text-muted">Vendeur</small>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="{{ route('vendor.dashboard') }}"><i class="fa fa-dashboard me-2"></i>Mon Dashboard</a></li>
+                        <li><a class="dropdown-item" href="{{ route('vendor.products.index') }}"><i class="fa fa-box me-2"></i>Mes Produits</a></li>
+                        <li><a class="dropdown-item" href="{{ route('vendor.orders.index') }}"><i class="fa fa-shopping-cart me-2"></i>Mes Commandes</a></li>
+                        <li><a class="dropdown-item" href="{{ route('vendor.profile.edit') }}"><i class="fa fa-user me-2"></i>Mon Profil</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item text-danger" href="{{ route('vendor.logout') }}"
+                            onclick="event.preventDefault(); document.getElementById('vendor-logout-form').submit();">
+                            <i class="fa fa-sign-out me-2"></i>Déconnexion
+                            </a>
+                            <form id="vendor-logout-form" action="{{ route('vendor.logout') }}" method="POST" class="d-none">@csrf</form>
+                        </li>
+                    {{-- Customer Menu --}}
+                    @elseif($isCustomer)
+                        @php $customer = Auth::guard('customer')->user(); @endphp
+                        <li class="dropdown-header">
+                            <strong>{{ $customer->name }}</strong>
+                            <br><small class="text-muted">Client</small>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="{{ route('customer.profile.edit') }}"><i class="fa fa-user me-2"></i>Mon profil</a></li>
+                        <li><a class="dropdown-item" href="{{ route('customer.wishlist.index') }}"><i class="fa fa-heart me-2"></i>Mes favoris</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item text-danger" href="{{ route('customer.logout') }}"
+                            onclick="event.preventDefault(); document.getElementById('customer-logout-form').submit();">
+                            <i class="fa fa-sign-out me-2"></i>Déconnexion
+                            </a>
+                            <form id="customer-logout-form" action="{{ route('customer.logout') }}" method="POST" class="d-none">@csrf</form>
+                        </li>
+                    {{-- Guest Menu --}}
+                    @else
+                        <li><a class="dropdown-item" href="{{ route('customer.login') }}"><i class="fa fa-sign-in me-2"></i>Connexion</a></li>
+                        <li><a class="dropdown-item" href="{{ route('customer.register') }}"><i class="fa fa-user-plus me-2"></i>Créer un compte</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-primary" href="{{ route('vendor.register') }}"><i class="fa fa-store me-2"></i>Devenir vendeur</a></li>
+                        <li><a class="dropdown-item text-muted small" href="{{ route('vendor.login') }}"><i class="fa fa-sign-in me-2"></i>Espace vendeur</a></li>
+                    @endif
                 </ul>
 
                 <!-- Cart Icon -->

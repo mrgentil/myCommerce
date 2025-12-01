@@ -15,8 +15,8 @@ return [
         'terms_of_service' => 'Conditions d\'utilisation',
         'follow_us' => 'Suivez-nous',
         'footer_logo_alt' => 'Logo du pied de page Velstore',
-        'copyright' => '© 2025 Démo Velstore. Tous droits réservés.',
-        'powered_by' => 'Propulsé par Velstore Labs',
+        'copyright' => '© 2025 MyCommerce. Tous droits réservés.',
+        'powered_by' => 'Propulsé par Owr Digi',
     ],
 
     'home' => [

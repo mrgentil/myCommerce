@@ -8,7 +8,10 @@
     </div>
     <ul class="nav flex-column">
         <li class="nav-item">
-            <a class="nav-link {{ Route::currentRouteName() == 'vendor.dashboard' ? 'active' : '' }}" href="{{ route('vendor.dashboard') }}" href="#"><i class="fas fa-home me-2"></i> <span>{{ __('cms.sidebar.dashboard') }}</span></a>
+            <a class="nav-link {{ Route::currentRouteName() == 'vendor.dashboard' ? 'active' : '' }}" href="{{ route('vendor.dashboard') }}"><i class="fas fa-home me-2"></i> <span>Tableau de bord</span></a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {{ Route::currentRouteName() == 'vendor.shop.edit' ? 'active' : '' }}" href="{{ route('vendor.shop.edit') }}"><i class="fas fa-store me-2"></i> <span>Ma boutique</span></a>
         </li>
         <li class="nav-item">
             <a class="nav-link d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#productMenu" role="button" aria-expanded="false" aria-controls="productMenu">
@@ -51,6 +54,9 @@
                     </li>
                 </ul>
             </div>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {{ Route::currentRouteName() == 'vendor.profile.edit' ? 'active' : '' }}" href="{{ route('vendor.profile.edit') }}"><i class="fas fa-user-cog me-2"></i> <span>Mon profil</span></a>
         </li>
     </ul>
 </nav>

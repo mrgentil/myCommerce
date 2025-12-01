@@ -82,9 +82,15 @@ $(document).ready(function() {
                 data: 'status',
                 name: 'status',
                 render: function(data) {
-                    return data === 'active' 
-                        ? '<span class="badge bg-success">{{ __('cms.vendors.active') }}</span>'
-                        : '<span class="badge bg-danger">{{ __('cms.vendors.inactive') }}</span>';
+                    const badges = {
+                        'pending': '<span class="badge bg-warning">En attente</span>',
+                        'approved': '<span class="badge bg-success">Approuvé</span>',
+                        'active': '<span class="badge bg-success">Actif</span>',
+                        'rejected': '<span class="badge bg-danger">Rejeté</span>',
+                        'inactive': '<span class="badge bg-secondary">Inactif</span>',
+                        'banned': '<span class="badge bg-dark">Banni</span>'
+                    };
+                    return badges[data] || '<span class="badge bg-secondary">' + data + '</span>';
                 }
             },
             { 
@@ -92,10 +98,31 @@ $(document).ready(function() {
                 orderable: false,
                 searchable: false,
                 render: function(data, type, row) {
-                    return `<span class="border border-danger dt-trash rounded-3 d-inline-block" 
-                                onclick="deleteVendor(${row.id})">
-                                <i class="bi bi-trash-fill text-danger"></i>
-                            </span>`;
+                    let actions = '<div class="btn-group btn-group-sm">';
+                    
+                    // View button
+                    actions += `<a href="/admin/vendors/${row.id}" class="btn btn-info btn-sm" title="Voir"><i class="bi bi-eye"></i></a>`;
+                    
+                    // Approve button for pending or inactive vendors
+                    if (row.status === 'pending' || row.status === 'inactive' || row.status === 'banned') {
+                        actions += `<button class="btn btn-success btn-sm" onclick="approveVendor(${row.id})" title="Approuver"><i class="bi bi-check"></i></button>`;
+                    }
+                    
+                    // Suspend button for active/approved vendors
+                    if (row.status === 'approved' || row.status === 'active') {
+                        actions += `<button class="btn btn-warning btn-sm" onclick="suspendVendor(${row.id})" title="Suspendre"><i class="bi bi-pause-circle"></i></button>`;
+                    }
+
+                    // Ban button
+                    if (row.status !== 'banned') {
+                        actions += `<button class="btn btn-dark btn-sm" onclick="banVendor(${row.id})" title="Bannir"><i class="bi bi-slash-circle"></i></button>`;
+                    }
+                    
+                    // Delete button
+                    actions += `<button class="btn btn-danger btn-sm" onclick="deleteVendor(${row.id})" title="Supprimer"><i class="bi bi-trash"></i></button>`;
+                    
+                    actions += '</div>';
+                    return actions;
                 }
             }
         ],
@@ -105,6 +132,57 @@ $(document).ready(function() {
 });
 
 let vendorToDeleteId = null;
+
+function approveVendor(id) {
+    if (confirm('Voulez-vous approuver ce vendeur ?')) {
+        $.ajax({
+            url: '/admin/vendors/' + id + '/approve',
+            method: 'POST',
+            data: { _token: "{{ csrf_token() }}" },
+            success: function(response) {
+                if (response.success) {
+                    $('#vendors-table').DataTable().ajax.reload();
+                    toastr.success(response.message, "Succès");
+                }
+            },
+            error: function() { toastr.error("Erreur lors de l'approbation", "Erreur"); }
+        });
+    }
+}
+
+function suspendVendor(id) {
+    if (confirm('Voulez-vous suspendre ce vendeur ? Il ne pourra plus se connecter.')) {
+        $.ajax({
+            url: '/admin/vendors/' + id + '/suspend',
+            method: 'POST',
+            data: { _token: "{{ csrf_token() }}" },
+            success: function(response) {
+                if (response.success) {
+                    $('#vendors-table').DataTable().ajax.reload();
+                    toastr.warning(response.message, "Vendeur suspendu");
+                }
+            },
+            error: function() { toastr.error("Erreur lors de la suspension", "Erreur"); }
+        });
+    }
+}
+
+function banVendor(id) {
+    if (confirm('Voulez-vous BANNIR ce vendeur ? Cette action est plus sévère que la suspension.')) {
+        $.ajax({
+            url: '/admin/vendors/' + id + '/ban',
+            method: 'POST',
+            data: { _token: "{{ csrf_token() }}" },
+            success: function(response) {
+                if (response.success) {
+                    $('#vendors-table').DataTable().ajax.reload();
+                    toastr.error(response.message, "Vendeur banni");
+                }
+            },
+            error: function() { toastr.error("Erreur lors du bannissement", "Erreur"); }
+        });
+    }
+}
 
 function deleteVendor(id) {
     vendorToDeleteId = id;        

@@ -16,7 +16,7 @@ return [
         'follow_us' => 'ما را دنبال کنید',
         'footer_logo_alt' => 'لوگوی پاورقی Velstore',
         'copyright' => '© ۲۰۲۵ نسخه نمایشی Velstore. تمامی حقوق محفوظ است.',
-        'powered_by' => 'قدرت گرفته از Velstore Labs',
+        'powered_by' => 'قدرت گرفته از Owr Digi',
     ],
 
     'home' => [

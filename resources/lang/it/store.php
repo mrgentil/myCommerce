@@ -16,7 +16,7 @@ return [
         'follow_us' => 'Seguici',
         'footer_logo_alt' => 'Logo del footer Velstore',
         'copyright' => '© 2025 Velstore Demo. Tutti i diritti riservati.',
-        'powered_by' => 'Sviluppato da Velstore Labs',
+        'powered_by' => 'Sviluppato da Owr Digi',
     ],
 
     'home' => [

@@ -11,10 +11,22 @@
             @csrf
 
             {{-- Language Tabs --}}
+            @php 
+                // Use session locale or first active language
+                $sessionLang = app()->getLocale();
+                $firstLang = $languages->first()?->code ?? 'en';
+                $activeLang = $languages->contains('code', $sessionLang) ? $sessionLang : $firstLang;
+            @endphp
+            <div class="alert alert-info small mb-3">
+                <i class="fa fa-info-circle me-2"></i>
+                <strong>Astuce :</strong> Remplissez le nom du produit dans au moins une langue. 
+                Vous pouvez ajouter des traductions dans les autres langues si besoin.
+            </div>
+            
             <ul class="nav nav-tabs" id="languageTabs" role="tablist">
                 @foreach($languages as $language)
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link {{ $loop->first ? 'active' : '' }}" 
+                        <button class="nav-link {{ $language->code === $activeLang ? 'active' : '' }}" 
                                 id="{{ $language->code }}-tab" 
                                 data-bs-toggle="tab" 
                                 data-bs-target="#{{ $language->code }}" 
@@ -28,25 +40,37 @@
 
             <div class="tab-content mt-3" id="languageTabContent">
                 @foreach($languages as $language)
-                    <div class="tab-pane fade show {{ $loop->first ? 'active' : '' }}" 
+                    <div class="tab-pane fade {{ $language->code === $activeLang ? 'show active' : '' }}" 
                          id="{{ $language->code }}" 
                          role="tabpanel">
 
-                        <label class="form-label">{{ __('cms.products.product_name') }} ({{ $language->code }})</label>
-                        <input type="text"
-                               name="translations[{{ $language->code }}][name]"
-                               class="form-control @error("translations.{$language->code}.name") is-invalid @enderror"
-                               value="{{ old("translations.{$language->code}.name") }}">
-                        @error("translations.{$language->code}.name")
-                            <div class="invalid-feedback d-block">{{ $message }}</div>
-                        @enderror
+                        <div class="mb-3">
+                            <label class="form-label">
+                                Nom du produit ({{ strtoupper($language->code) }})
+                            </label>
+                            <input type="text"
+                                   name="translations[{{ $language->code }}][name]"
+                                   class="form-control @error("translations.{$language->code}.name") is-invalid @enderror"
+                                   value="{{ old("translations.{$language->code}.name") }}"
+                                   placeholder="Ex: T-shirt en coton bio, Chaussures de sport Nike...">
+                            <small class="text-muted">Nom clair et descriptif du produit (max 255 caractères)</small>
+                            @error("translations.{$language->code}.name")
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                            @enderror
+                        </div>
 
-                        <label class="form-label mt-3">{{ __('cms.products.description') }} ({{ $language->code }})</label>
-                        <textarea name="translations[{{ $language->code }}][description]"
-                                  class="form-control ck-editor-multi-languages @error("translations.{$language->code}.description") is-invalid @enderror">{{ old("translations.{$language->code}.description") }}</textarea>
-                        @error("translations.{$language->code}.description")
-                            <div class="invalid-feedback d-block">{{ $message }}</div>
-                        @enderror
+                        <div class="mb-3">
+                            <label class="form-label">
+                                Description ({{ strtoupper($language->code) }})
+                            </label>
+                            <textarea name="translations[{{ $language->code }}][description]"
+                                      class="form-control ck-editor-multi-languages @error("translations.{$language->code}.description") is-invalid @enderror"
+                                      placeholder="Décrivez votre produit en détail : matériaux, caractéristiques, avantages...">{{ old("translations.{$language->code}.description") }}</textarea>
+                            <small class="text-muted">Description détaillée pour aider les clients à comprendre votre produit</small>
+                            @error("translations.{$language->code}.description")
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                            @enderror
+                        </div>
                     </div>
                 @endforeach
             </div>
@@ -54,94 +78,112 @@
             {{-- Category & Brand --}}
             <div class="row mt-4">
                 <div class="col-md-6">
-                    <label class="form-label">{{ __('cms.products.category') }}</label>
+                    <label class="form-label">Catégorie <span class="text-danger">*</span></label>
                     <select name="category_id" class="form-control">
+                        <option value="">-- Sélectionnez une catégorie --</option>
                         @foreach($categories as $category)
                             <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>
                                 {{ $category->translation->name ?? '—' }}
                             </option>
                         @endforeach
                     </select>
+                    <small class="text-muted">Dans quelle catégorie classer ce produit ?</small>
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label">{{ __('cms.products.brand') }}</label>
+                    <label class="form-label">Marque</label>
                     <select name="brand_id" class="form-control">
-                        <option value="">{{ __('cms.products.no_brand') }}</option>
+                        <option value="">-- Sans marque --</option>
                         @foreach($brands as $brand)
                             <option value="{{ $brand->id }}" {{ old('brand_id') == $brand->id ? 'selected' : '' }}>
                                 {{ $brand->translation->name ?? '—' }}
                             </option>
                         @endforeach
                     </select>
+                    <small class="text-muted">Optionnel : marque du produit si applicable</small>
                 </div>
             </div>
 
             {{-- Variants --}}
+            <div class="mt-4">
+                <h5><i class="fa fa-cubes me-2"></i>Variantes du produit</h5>
+                <p class="text-muted small">
+                    Ajoutez au moins une variante. Chaque variante peut avoir un prix, stock et attributs différents 
+                    (ex: T-shirt Rouge Taille M, T-shirt Bleu Taille L).
+                </p>
+            </div>
             <div id="variants-wrapper" class="mt-3"></div>
-            <div class="d-flex gap-2 mt-3">
+            <div class="d-flex gap-2 mt-3 align-items-center">
                  <button type="button" id="add-variant-btn"
-                    class="btn btn-light rounded-circle shadow-sm border d-flex align-items-center justify-content-center"
-                    style="width:48px; height:48px;">
-                    <i class="fa-solid fa-plus text-primary fs-5"></i>
+                    class="btn btn-outline-primary btn-sm">
+                    <i class="fa-solid fa-plus me-1"></i> Ajouter une variante
                 </button>
                 <button type="button" id="remove-variant-btn"
-                    class="btn btn-light rounded-circle shadow-sm border d-flex align-items-center justify-content-center"
-                    style="width:48px; height:48px;" disabled>
-                    <i class="fa-solid fa-trash fs-5 text-danger"></i>
+                    class="btn btn-outline-danger btn-sm" disabled>
+                    <i class="fa-solid fa-trash me-1"></i> Supprimer la dernière
                 </button>
             </div>
             <template id="variant-template">
-                <div class="card p-3 mt-3 variant-item border rounded" data-index="__INDEX__">
-                    <h5>{{ __('cms.products.variants') }} <span class="variant-number">__INDEX__</span></h5>
+                <div class="card p-3 mt-3 variant-item border rounded bg-light" data-index="__INDEX__">
+                    <h6 class="text-primary mb-3"><i class="fa fa-cube me-1"></i> Variante #<span class="variant-number">__INDEX__</span></h6>
                     <div class="row">
-                        <div class="col-md-4">
-                            <label>{{ __('cms.products.variant_name_en') }}</label>
-                            <input type="text" name="variants[__INDEX__][name]" class="form-control" value="__NAME__" />
+                        <div class="col-md-4 mb-2">
+                            <label>Nom de la variante <span class="text-danger">*</span></label>
+                            <input type="text" name="variants[__INDEX__][name]" class="form-control" value="__NAME__" placeholder="Ex: Rouge - Taille M" />
+                            <small class="text-muted">Identifie cette variante</small>
                             <div class="invalid-feedback d-block variant-name-error"></div>
                         </div>
-                        <div class="col-md-4">
-                            <label>{{ __('cms.products.price') }}</label>
-                            <input type="number" step="0.01" name="variants[__INDEX__][price]" class="form-control" value="__PRICE__" />
+                        <div class="col-md-4 mb-2">
+                            <label>Prix (€) <span class="text-danger">*</span></label>
+                            <input type="number" step="0.01" name="variants[__INDEX__][price]" class="form-control" value="__PRICE__" placeholder="29.99" />
+                            <small class="text-muted">Prix de vente</small>
                             <div class="invalid-feedback d-block variant-price-error"></div>
                         </div>
-                        <div class="col-md-4">
-                            <label>{{ __('cms.products.discount_price') }}</label>
-                            <input type="number" step="0.01" name="variants[__INDEX__][discount_price]" class="form-control" value="__DISCOUNT__" />
+                        <div class="col-md-4 mb-2">
+                            <label>Prix promo</label>
+                            <input type="number" step="0.01" name="variants[__INDEX__][discount_price]" class="form-control" value="__DISCOUNT__" placeholder="19.99" />
+                            <small class="text-muted">Optionnel : prix soldé</small>
                         </div>
 
-                        <div class="col-md-4 mt-2">
-                            <label>{{ __('cms.products.stock') }}</label>
-                            <input type="number" name="variants[__INDEX__][stock]" class="form-control" value="__STOCK__" />
+                        <div class="col-md-4 mb-2">
+                            <label>Stock <span class="text-danger">*</span></label>
+                            <input type="number" name="variants[__INDEX__][stock]" class="form-control" value="__STOCK__" placeholder="100" />
+                            <small class="text-muted">Quantité disponible</small>
                             <div class="invalid-feedback d-block variant-stock-error"></div>
                         </div>
-                        <div class="col-md-4 mt-2">
-                            <label>{{ __('cms.products.sku') }}</label>
-                            <input type="text" name="variants[__INDEX__][SKU]" class="form-control" value="__SKU__" />
+                        <div class="col-md-4 mb-2">
+                            <label>SKU <span class="text-danger">*</span></label>
+                            <input type="text" name="variants[__INDEX__][SKU]" class="form-control" value="__SKU__" placeholder="PROD-001-RED-M" />
+                            <small class="text-muted">Code unique du produit</small>
                             <div class="invalid-feedback d-block variant-sku-error"></div>
                         </div>
-                        <div class="col-md-4 mt-2">
-                            <label>{{ __('cms.products.barcode') }}</label>
-                            <input type="text" name="variants[__INDEX__][barcode]" class="form-control" value="__BARCODE__" />
+                        <div class="col-md-4 mb-2">
+                            <label>Code-barres</label>
+                            <input type="text" name="variants[__INDEX__][barcode]" class="form-control" value="__BARCODE__" placeholder="1234567890123" />
+                            <small class="text-muted">Optionnel : EAN/UPC</small>
                         </div>
-                        <div class="col-md-4 mt-2">
-                            <label>{{ __('cms.products.weight') }}</label>
-                            <input type="text" name="variants[__INDEX__][weight]" class="form-control" placeholder="e.g., 1.5 kg" value="__WEIGHT__" />
+                        <div class="col-md-4 mb-2">
+                            <label>Poids</label>
+                            <input type="text" name="variants[__INDEX__][weight]" class="form-control" placeholder="0.5 kg" value="__WEIGHT__" />
+                            <small class="text-muted">Pour le calcul livraison</small>
                         </div>
-                        <div class="col-md-4 mt-2">
-                            <label>{{ __('cms.products.dimension') }}</label>
-                            <input type="text" name="variants[__INDEX__][dimension]" class="form-control" placeholder="e.g., 10x20x5 cm" value="__DIMENSION__" />
+                        <div class="col-md-4 mb-2">
+                            <label>Dimensions</label>
+                            <input type="text" name="variants[__INDEX__][dimension]" class="form-control" placeholder="30x20x5 cm" value="__DIMENSION__" />
+                            <small class="text-muted">L x l x H</small>
                         </div>
-                        <div class="col-md-6 mt-2">
-                            <label>{{ __('cms.products.size') }}</label>
+                        <div class="col-md-2 mb-2">
+                            <label>Taille</label>
                             <select name="variants[__INDEX__][size_id]" class="form-control">
+                                <option value="">--</option>
                                 @foreach($sizes as $size)
                                     <option value="{{ $size->id }}" __SIZE_SELECTED__>{{ $size->value }}</option>
                                 @endforeach
                             </select>
                         </div>
-                        <div class="col-md-6 mt-2">
-                            <label>{{ __('cms.products.color') }}</label>
+                        <div class="col-md-2 mb-2">
+                            <label>Couleur</label>
                             <select name="variants[__INDEX__][color_id]" class="form-control">
+                                <option value="">--</option>
                                 @foreach($colors as $color)
                                     <option value="{{ $color->id }}" __COLOR_SELECTED__>{{ $color->value }}</option>
                                 @endforeach
@@ -152,18 +194,29 @@
             </template>
 
             {{-- Images --}}
-            <div class="mt-3">
-                <label class="form-label">{{ __('cms.products.images') }}</label>
+            <div class="mt-4">
+                <h5><i class="fa fa-images me-2"></i>Images du produit</h5>
+                <p class="text-muted small">
+                    Ajoutez des photos de qualité. La première image sera l'image principale.
+                    Formats acceptés : JPEG, PNG, GIF, WebP (max 2 Mo par image).
+                </p>
                 <div class="custom-file">
-                    <label class="btn btn-primary" for="productImages">{{ __('cms.products.choose_file') }}</label>
-                    <input type="file" name="images[]" class="form-control d-none" id="productImages" multiple onchange="previewMultipleImages(this)">
+                    <label class="btn btn-outline-primary" for="productImages">
+                        <i class="fa fa-upload me-1"></i> Choisir des images
+                    </label>
+                    <input type="file" name="images[]" class="form-control d-none" id="productImages" multiple onchange="previewMultipleImages(this)" accept="image/jpeg,image/png,image/gif,image/webp">
                 </div>
-                <div id="productImagesPreview" class="mt-2 d-flex flex-wrap gap-2"></div>
+                <div id="productImagesPreview" class="mt-3 d-flex flex-wrap gap-2"></div>
             </div>
 
             {{-- Submit --}}
-            <div class="mt-4 text-start">
-                <button type="submit" class="btn btn-primary">{{ __('cms.products.save_product') }}</button>
+            <div class="mt-4 pt-3 border-top">
+                <button type="submit" class="btn btn-success btn-lg">
+                    <i class="fa fa-check me-1"></i> Enregistrer le produit
+                </button>
+                <a href="{{ route('vendor.products.index') }}" class="btn btn-outline-secondary btn-lg ms-2">
+                    <i class="fa fa-times me-1"></i> Annuler
+                </a>
             </div>
         </form>
     </div>

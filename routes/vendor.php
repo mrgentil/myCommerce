@@ -7,12 +7,18 @@ use App\Http\Controllers\Vendor\OrderController;
 use App\Http\Controllers\Vendor\ProductController;
 use App\Http\Controllers\Vendor\ProductReviewController;
 use App\Http\Controllers\Vendor\ProfileController;
-use App\Http\Controllers\Vendor\SocialMediaLinkController;
+use App\Http\Controllers\Vendor\ShopController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('vendor')->group(function () {
-    Route::get('/login', [AuthController::class, 'showLoginForm'])->name('vendor.login');
-    Route::post('/login', [AuthController::class, 'login'])->name('vendor.login.submit');
+    // Guest routes
+    Route::middleware('guest:vendor')->group(function () {
+        Route::get('/login', [AuthController::class, 'showLoginForm'])->name('vendor.login');
+        Route::post('/login', [AuthController::class, 'login'])->name('vendor.login.submit');
+        Route::get('/register', [AuthController::class, 'showRegistrationForm'])->name('vendor.register');
+        Route::post('/register', [AuthController::class, 'register'])->name('vendor.register.submit');
+    });
+    
     Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth.vendor')->name('vendor.logout');
 
     Route::middleware('auth.vendor')->group(function () {
@@ -20,8 +26,6 @@ Route::prefix('vendor')->group(function () {
         Route::resource('products', ProductController::class)->names('vendor.products');
         Route::post('products/data', [ProductController::class, 'getProducts'])->name('vendor.products.data');
         Route::post('products/updateStatus', [ProductController::class, 'updateStatus'])->name('vendor.products.updateStatus');
-        Route::resource('social-media-links', SocialMediaLinkController::class)->names('vendor.social-media-links');
-        Route::post('social-media-links/data', [SocialMediaLinkController::class, 'getData'])->name('vendor.social-media-links.data');
 
         Route::get('reviews', [ProductReviewController::class, 'index'])->name('vendor.reviews.index');
         Route::get('reviews/data', [ProductReviewController::class, 'getData'])->name('vendor.reviews.data');
@@ -39,5 +43,11 @@ Route::prefix('vendor')->group(function () {
         /** Profile */
         Route::get('profile/edit', [ProfileController::class, 'edit'])->name('vendor.profile.edit');
         Route::patch('profile', [ProfileController::class, 'update'])->name('vendor.profile.update');
+
+        /** Shop Configuration */
+        Route::get('shop', [ShopController::class, 'edit'])->name('vendor.shop.edit');
+        Route::put('shop', [ShopController::class, 'update'])->name('vendor.shop.update');
+        Route::post('shop/remove-logo', [ShopController::class, 'removeLogo'])->name('vendor.shop.remove-logo');
+        Route::post('shop/remove-banner', [ShopController::class, 'removeBanner'])->name('vendor.shop.remove-banner');
     });
 });

@@ -28,9 +28,10 @@ class UpdateProfileRequest extends FormRequest
             ],
             'phone' => ['nullable', 'string', 'max:20'],
             'address' => ['nullable', 'string'],
-            'profile_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
+            'profile_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,gif,webp', 'max:2048'],
 
-            'current_password' => ['nullable', 'string'],
+            // Password fields are optional - only validate if provided
+            'current_password' => ['nullable', 'string', 'required_with:password'],
             'password' => ['nullable', 'string', 'min:8', 'confirmed'],
         ];
     }
@@ -55,7 +56,7 @@ class UpdateProfileRequest extends FormRequest
                 $customer = Auth::guard('customer')->user();
 
                 if (! $customer || ! Hash::check($this->input('current_password', ''), $customer->password)) {
-                    $validator->errors()->add('current_password', __('validation.incorrect_current_password'));
+                    $validator->errors()->add('current_password', 'Le mot de passe actuel est incorrect.');
                 }
             }
         });

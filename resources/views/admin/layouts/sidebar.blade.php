@@ -87,6 +87,21 @@
                         </li>
                     </ul>
                 </div>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#shopMenu" role="button" aria-expanded="false" aria-controls="shopMenu">
+                    <span><i class="fas fa-store me-2"></i> <span>Boutiques</span></span>
+                    <i class="fas fa-chevron-down"></i>
+                </a>
+                <div class="collapse {{ in_array(Route::currentRouteName(), ['admin.shops.index', 'admin.shops.show']) ? 'show' : '' }}" id="shopMenu">
+                    <ul class="nav flex-column ms-3">
+                        <li>
+                            <a class="nav-link {{ Route::currentRouteName() == 'admin.shops.index' ? 'active' : '' }}" href="{{ route('admin.shops.index') }}">
+                                Liste des boutiques
+                            </a>
+                        </li>
+                    </ul>
+                </div>
             </li>  
              <li class="nav-item">
             <a class="nav-link d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#ordersMenu" role="button" aria-expanded="false" aria-controls="ordersMenu">
@@ -164,6 +179,11 @@
             </div>
         </li>
         <li class="nav-item">
+            <a class="nav-link {{ str_contains(Route::currentRouteName(), 'hero-slides') ? 'active' : '' }}" href="{{ route('admin.hero-slides.index') }}">
+                <i class="fas fa-images me-2"></i> <span>Hero Slider</span>
+            </a>
+        </li>
+        <li class="nav-item">
             <a class="nav-link d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#menuMenu" role="button" aria-expanded="false" aria-controls="menuMenu">
                 <span><i class="fas fa-bars me-2"></i> <span>{{ __('cms.sidebar.menu.title') }}</span></span>
                 <i class="fas fa-chevron-down"></i>
@@ -231,6 +251,9 @@
                     <li><a class="nav-link {{ Route::currentRouteName() == 'site-settings.index' ? 'active' : '' }}" href="{{ route('site-settings.index') }}">{{ __('cms.sidebar.site_settings.manage') }}</a></li>
                 </ul>
             </div>
-        </li>           
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {{ Route::currentRouteName() == 'admin.profile.edit' ? 'active' : '' }}" href="{{ route('admin.profile.edit') }}"><i class="fas fa-user-cog me-2"></i> <span>Mon profil</span></a>
+        </li>
     </ul>
 </nav>

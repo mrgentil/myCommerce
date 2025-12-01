@@ -38,7 +38,8 @@ body {
     flex-grow: 1;
     transition: all 0.3s;
 }
-#sidebar.collapsed + #content {
+#sidebar.collapsed + #content,
+#content.expanded {
     margin-left: 80px;
 }
 .dropdown-toggle i {
@@ -248,4 +249,25 @@ input:checked + .slider:before {
     font-weight: bold;
     line-height: 54px;
     position: relative;
+}
+
+/* Admin Header Navbar */
+#content > .navbar {
+    z-index: 1000;
+    position: sticky;
+    top: 0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+#content > .navbar .dropdown-menu {
+    z-index: 1050;
+}
+
+#content > .navbar .dropdown-toggle::after {
+    margin-left: 0.5rem;
+}
+
+/* Profile dropdown */
+#content > .navbar .dropdown-menu.show {
+    display: block;
 }

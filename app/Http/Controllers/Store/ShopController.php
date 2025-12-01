@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\Shop;
 use Illuminate\Http\Request;
 
 class ShopController extends Controller
@@ -17,13 +18,16 @@ class ShopController extends Controller
         $filters = [
             'category' => $request->input('category', []),
             'brand' => $request->input('brand', []),
+            'shop' => $request->input('shop', []),
             'price_min' => $request->input('price_min', 0),
             'price_max' => $request->input('price_max', 1000),
             'color' => $request->input('color', []),
             'size' => $request->input('size', []),
+            'sort' => $request->input('sort', 'newest'),
         ];
 
-        $products = Product::with(['translation', 'variants.attributeValues'])
+        $products = Product::with(['translation', 'variants.attributeValues', 'shop'])
+            ->where('status', true)
             ->withCount('reviews')
             ->withAvg('reviews', 'rating')
             ->when(! empty($filters['category']), function ($query) use ($filters) {
@@ -31,6 +35,9 @@ class ShopController extends Controller
             })
             ->when(! empty($filters['brand']), function ($query) use ($filters) {
                 $query->whereIn('brand_id', $filters['brand']);
+            })
+            ->when(! empty($filters['shop']), function ($query) use ($filters) {
+                $query->whereIn('shop_id', $filters['shop']);
             })
             ->whereHas('variants', function ($variantQuery) use ($filters) {
                 $variantQuery
@@ -56,16 +63,39 @@ class ShopController extends Controller
                                 });
                         });
                     });
-            })
-            ->paginate(12);
+            });
+
+        // Apply sorting
+        switch ($filters['sort']) {
+            case 'price_low':
+                $products->orderBy('price', 'asc');
+                break;
+            case 'price_high':
+                $products->orderBy('price', 'desc');
+                break;
+            case 'popular':
+                $products->orderBy('reviews_count', 'desc');
+                break;
+            case 'rating':
+                $products->orderBy('reviews_avg_rating', 'desc');
+                break;
+            default:
+                $products->orderBy('created_at', 'desc');
+        }
+
+        $products = $products->paginate(12);
 
         $brands = Brand::with('translation')->withCount('products')->get();
         $categories = Category::with('translation')->withCount('products')->get();
+        $shops = Shop::where(function ($query) {
+            $query->where('status', 'approved')
+                ->orWhere('status', 'active');
+        })->withCount('products')->get();
 
         if ($request->ajax()) {
             return view('themes.xylo.partials.product-list', compact('products'))->render();
         }
 
-        return view('themes.xylo.shop', compact('products', 'categories', 'brands'));
+        return view('themes.xylo.shop', compact('products', 'categories', 'brands', 'shops', 'filters'));
     }
 }

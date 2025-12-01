@@ -16,7 +16,7 @@ return [
         'follow_us' => 'Подписывайтесь на нас',
         'footer_logo_alt' => 'Логотип подвала Velstore',
         'copyright' => '© 2025 Velstore Demo. Все права защищены.',
-        'powered_by' => 'Разработано Velstore Labs',
+        'powered_by' => 'Разработано Owr Digi',
     ],
 
     'home' => [

@@ -10,14 +10,29 @@
             @csrf
             @method('PUT')
             {{-- Language Tabs --}}
+            @php 
+                // Find first language with existing translation, or use session locale
+                $existingTransLang = $product->translations->first()?->language_code;
+                $sessionLang = app()->getLocale();
+                $activeLang = $existingTransLang ?? ($languages->contains('code', $sessionLang) ? $sessionLang : $languages->first()?->code);
+            @endphp
+            <div class="alert alert-info small mb-3">
+                <i class="fa fa-info-circle me-2"></i>
+                Ce produit a des traductions en : 
+                <strong>{{ $product->translations->pluck('language_code')->map(fn($c) => strtoupper($c))->join(', ') ?: 'Aucune' }}</strong>
+            </div>
             <ul class="nav nav-tabs" role="tablist">
                 @foreach($languages as $lang)
+                    @php $hasTranslation = $product->translations->contains('language_code', $lang->code); @endphp
                     <li class="nav-item">
-                        <button class="nav-link @if ($loop->first) active @endif"
+                        <button class="nav-link {{ $lang->code === $activeLang ? 'active' : '' }}"
                                 data-bs-toggle="tab"
                                 data-bs-target="#lang-{{ $lang->code }}"
                                 type="button">
                             {{ ucwords($lang->name) }}
+                            @if($hasTranslation)
+                                <span class="badge bg-success ms-1" title="Traduction existante">✓</span>
+                            @endif
                         </button>
                     </li>
                 @endforeach
@@ -27,14 +42,20 @@
                     @php
                         $translation = $product->translations->firstWhere('language_code', $lang->code);
                     @endphp
-                    <div class="tab-pane fade @if ($loop->first) show active @endif" id="lang-{{ $lang->code }}">
-                        <label>{{ __('cms.products.product_name') }} ({{ $lang->code }})</label>
-                        <input type="text" name="translations[{{ $lang->code }}][name]" class="form-control"
-                               value="{{ old("translations.{$lang->code}.name", $translation?->name) }}">
+                    <div class="tab-pane fade {{ $lang->code === $activeLang ? 'show active' : '' }}" id="lang-{{ $lang->code }}">
+                        <div class="mb-3">
+                            <label class="form-label">Nom du produit ({{ strtoupper($lang->code) }})</label>
+                            <input type="text" name="translations[{{ $lang->code }}][name]" class="form-control"
+                                   value="{{ old("translations.{$lang->code}.name", $translation?->name) }}"
+                                   placeholder="Ex: T-shirt en coton bio...">
+                        </div>
 
-                        <label class="mt-2">{{ __('cms.products.description') }} ({{ $lang->code }})</label>
-                        <textarea class="form-control ck-editor-multi-languages"
-                                  name="translations[{{ $lang->code }}][description]">{{ old("translations.{$lang->code}.description", $translation?->description) }}</textarea>
+                        <div class="mb-3">
+                            <label class="form-label">Description ({{ strtoupper($lang->code) }})</label>
+                            <textarea class="form-control ck-editor-multi-languages"
+                                      name="translations[{{ $lang->code }}][description]"
+                                      placeholder="Décrivez votre produit...">{{ old("translations.{$lang->code}.description", $translation?->description) }}</textarea>
+                        </div>
                     </div>
                 @endforeach
             </div>

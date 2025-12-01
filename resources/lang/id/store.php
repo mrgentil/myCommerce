@@ -16,7 +16,7 @@ return [
         'follow_us' => 'Ikuti Kami',
         'footer_logo_alt' => 'Logo Footer Velstore',
         'copyright' => '© 2025 Demo Velstore. Semua Hak Dilindungi.',
-        'powered_by' => 'Ditenagai oleh Velstore Labs',
+        'powered_by' => 'Ditenagai oleh Owr Digi',
     ],
 
     'home' => [

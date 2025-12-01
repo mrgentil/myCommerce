@@ -16,7 +16,7 @@ return [
         'follow_us' => 'Theo dõi chúng tôi',
         'footer_logo_alt' => 'Logo chân trang Velstore',
         'copyright' => '© 2025 Velstore Demo. Bảo lưu mọi quyền.',
-        'powered_by' => 'Phát triển bởi Velstore Labs',
+        'powered_by' => 'Phát triển bởi Owr Digi',
     ],
 
     'home' => [

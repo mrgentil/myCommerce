@@ -89,7 +89,7 @@ class Velstore extends Command
             [
                 'name' => 'Admin User',
                 'email' => 'admin@example.com',
-                'password' => Hash::make('abc123'),
+                'password' => 'abc123',
                 'profile_image' => 'https://i.postimg.cc/1t3RZtmT/images-9.jpg',
             ]
         );

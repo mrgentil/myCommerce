@@ -35,9 +35,12 @@ class ProductService
 
         return DataTables::of($products)
             ->addColumn('name', function ($product) {
-                $translation = $product->translations->firstWhere('language_code', 'en');
+                // Try session locale first, then any available translation
+                $locale = app()->getLocale();
+                $translation = $product->translations->firstWhere('language_code', $locale)
+                    ?? $product->translations->first();
 
-                return $translation ? $translation->name : 'No name available';
+                return $translation?->name ?? 'Aucun nom';
             })
             ->addColumn('price', function ($product) {
                 $primaryVariant = $product->variants->firstWhere('is_primary', true);

@@ -16,7 +16,7 @@ return [
         'follow_us' => 'フォローする',
         'footer_logo_alt' => 'Velstore フッターロゴ',
         'copyright' => '© 2025 Velstore Demo. 全著作権所有。',
-        'powered_by' => 'Velstore Labsによって提供',
+        'powered_by' => 'Owr Digiによって提供',
     ],
 
     'home' => [

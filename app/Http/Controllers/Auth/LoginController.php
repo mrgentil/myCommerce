@@ -47,4 +47,15 @@ class LoginController extends Controller
     {
         return view('admin.auth.login');
     }
+
+    /**
+     * The user has logged out of the application.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    protected function loggedOut(\Illuminate\Http\Request $request)
+    {
+        return redirect('/login');
+    }
 }

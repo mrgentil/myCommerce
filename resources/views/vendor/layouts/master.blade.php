@@ -23,6 +23,22 @@
     <div id="content" class="w-100">
         <nav class="navbar navbar-expand navbar-light bg-light p-3">
             <button class="btn btn-dark" id="sidebarToggle"><i class="fas fa-bars"></i></button>
+            
+            <!-- View Site & Shop Buttons -->
+            <div class="ms-3">
+                <a href="{{ url('/') }}" target="_blank" class="btn btn-outline-primary btn-sm" title="Voir le site">
+                    <i class="bi bi-box-arrow-up-right me-1"></i> Voir le site
+                </a>
+                @php
+                    $vendorShop = Auth::guard('vendor')->user()?->shop;
+                @endphp
+                @if($vendorShop)
+                <a href="{{ route('shop.view', $vendorShop->slug) }}" target="_blank" class="btn btn-outline-success btn-sm" title="Voir ma boutique">
+                    <i class="bi bi-shop me-1"></i> Ma boutique
+                </a>
+                @endif
+            </div>
+            
             <!-- Language Change Dropdown -->
             <div class="dropdown ms-auto me-3">
                 <button class="btn btn-light dropdown-toggle" data-bs-toggle="dropdown">
@@ -51,27 +67,63 @@
                 </ul>
             </div>
             <div class="dropdown">
-                <button class="btn btn-light dropdown-toggle" data-bs-toggle="dropdown">
-                    @php
-                        $vendor = Auth::guard('vendor')->user();
-                    @endphp
-                   <img src="{{ $vendor && $vendor->profile_image
-                        ? (\Illuminate\Support\Str::startsWith($vendor->profile_image, ['http://', 'https://'])
-                            ? $vendor->profile_image
-                            : asset('storage/' . $vendor->profile_image))
-                        : 'https://ui-avatars.com/api/?name=' . urlencode($vendor ? $vendor->name : 'V') . '&background=1976d2&color=fff&size=40' }}"
-                        class="rounded-circle"
-                        alt="Profile"
-                        style="width: 40px; height: 40px; object-fit: cover; border: 2px solid #e0e0e0;">
+                @php $vendor = Auth::guard('vendor')->user(); @endphp
+                <button class="btn btn-light dropdown-toggle d-flex align-items-center" data-bs-toggle="dropdown">
+                   @if($vendor && $vendor->profile_image)
+                        <img src="{{ \Illuminate\Support\Str::startsWith($vendor->profile_image, ['http://', 'https://']) ? $vendor->profile_image : asset('storage/' . $vendor->profile_image) }}"
+                            class="rounded-circle me-2" alt="Profile" width="32" height="32" style="object-fit:cover;">
+                   @else
+                        <span class="d-inline-flex align-items-center justify-content-center rounded-circle text-white fw-bold me-2" style="width:32px; height:32px; background-color:#667eea; font-size:12px;">
+                            {{ $vendor ? strtoupper(substr($vendor->name, 0, 2)) : 'V' }}
+                        </span>
+                   @endif
+                   <span class="d-none d-md-inline">{{ $vendor ? $vendor->name : 'Vendeur' }}</span>
                 </button>
-                <ul class="dropdown-menu dropdown-menu-end">
-                    <li><a class="dropdown-item" href="{{ route('vendor.profile.edit') }}">Profile</a></li>
+                <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3">
+                    <li class="dropdown-header">
+                        <strong>{{ $vendor ? $vendor->name : 'Vendeur' }}</strong>
+                        <br><small class="text-primary"><i class="bi bi-shop me-1"></i>Vendeur</small>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <a class="dropdown-item d-flex align-items-center" href="{{ route('vendor.dashboard') }}">
+                            <i class="bi bi-speedometer2 me-2"></i> Tableau de bord
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item d-flex align-items-center" href="{{ route('vendor.profile.edit') }}">
+                            <i class="bi bi-person-circle me-2"></i> Mon profil
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item d-flex align-items-center" href="{{ route('vendor.products.index') }}">
+                            <i class="bi bi-box me-2"></i> Mes produits
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item d-flex align-items-center" href="{{ route('vendor.orders.index') }}">
+                            <i class="bi bi-cart me-2"></i> Mes commandes
+                        </a>
+                    </li>
+                    @if($vendor && $vendor->shop)
+                    <li>
+                        <a class="dropdown-item d-flex align-items-center" href="{{ route('shop.view', $vendor->shop->slug) }}" target="_blank">
+                            <i class="bi bi-shop me-2"></i> Ma boutique
+                        </a>
+                    </li>
+                    @endif
+                    <li>
+                        <a class="dropdown-item d-flex align-items-center" href="{{ url('/') }}" target="_blank">
+                            <i class="bi bi-box-arrow-up-right me-2"></i> Voir le site
+                        </a>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
                     <li>
                         <form id="vendor-logout-form" action="{{ route('vendor.logout') }}" method="POST" style="display: none;">
                             @csrf
                         </form>
-                        <a class="dropdown-item" href="#" onclick="event.preventDefault(); document.getElementById('vendor-logout-form').submit();">
-                            Logout
+                        <a class="dropdown-item d-flex align-items-center text-danger" href="#" onclick="event.preventDefault(); document.getElementById('vendor-logout-form').submit();">
+                            <i class="bi bi-box-arrow-right me-2"></i> Déconnexion
                         </a>
                     </li>
                 </ul>
@@ -100,15 +152,35 @@
             </div>
         </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     @if (!App::environment('testing'))
         @vite(['resources/js/app.js'])
     @endif
     <script>
         document.addEventListener("DOMContentLoaded", function () {
+            // Sidebar Toggle
+            const sidebarToggle = document.getElementById("sidebarToggle");
+            const sidebar = document.getElementById("sidebar");
+            const content = document.getElementById("content");
+            
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener("click", function () {
+                    sidebar.classList.toggle("collapsed");
+                    content.classList.toggle("expanded");
+                });
+            }
+
+            // Initialize all dropdowns
+            var dropdownElementList = [].slice.call(document.querySelectorAll('.dropdown-toggle'));
+            dropdownElementList.forEach(function (dropdownToggleEl) {
+                new bootstrap.Dropdown(dropdownToggleEl);
+            });
+
+            // Search functionality
             const searchInput = document.getElementById("searchInput");
             const menuItems = document.querySelectorAll(".nav-item");
+            if (searchInput) {
             searchInput.addEventListener("input", function () {
                 const searchTerm = searchInput.value.toLowerCase();
                 menuItems.forEach((item) => {
@@ -144,6 +216,7 @@
                     }
                 });
             });
+            }
         });
     </script>
     <script>

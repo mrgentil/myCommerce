@@ -16,6 +16,8 @@ use App\Http\Controllers\Store\ReviewController;
 use App\Http\Controllers\Store\SearchController;
 use App\Http\Controllers\Store\ShopController;
 use App\Http\Controllers\Store\WishlistController;
+use App\Http\Controllers\Store\PageController;
+use App\Http\Controllers\Store\ShopViewController;
 use App\Http\Controllers\StoreController;
 use Illuminate\Support\Facades\Route;
 
@@ -42,6 +44,11 @@ Route::get('/get-variant-price', [ProductController::class, 'getVariantPrice'])-
 
 Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
 Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
+Route::post('/checkout/process', [CheckoutController::class, 'process'])->name('checkout.process');
+
+// PayPal callbacks
+Route::get('/checkout/paypal/success', [CheckoutController::class, 'paypalSuccess'])->name('paypal.success');
+Route::get('/checkout/paypal/cancel', [CheckoutController::class, 'paypalCancel'])->name('paypal.cancel');
 
 // Category page
 Route::get('/category/{slug}', [CategoryController::class, 'show'])->name('category.show');
@@ -79,3 +86,13 @@ Route::prefix('customer')->name('customer.')->group(function () {
 });
 
 Route::get('/stripe/checkout', [StripeController::class, 'checkout'])->name('stripe.checkout.process');
+
+// Shop pages
+Route::get('/shops', [ShopViewController::class, 'index'])->name('shops.index');
+Route::get('/shop/{slug}', [ShopViewController::class, 'show'])->name('shop.view');
+
+// Dynamic pages (must be last to avoid conflicts)
+// Exclude system routes: login, register, admin, vendor, customer, etc.
+Route::get('/{slug}', [PageController::class, 'show'])
+    ->name('page.show')
+    ->where('slug', '^(?!login|register|logout|admin|vendor|customer|password|api|sanctum).*$');

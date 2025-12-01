@@ -16,7 +16,7 @@ return [
         'follow_us' => 'ติดตามเรา',
         'footer_logo_alt' => 'โลโก้ฟุตเตอร์ Velstore',
         'copyright' => '© 2025 Velstore Demo. สงวนลิขสิทธิ์ทุกประการ',
-        'powered_by' => 'พัฒนาโดย Velstore Labs',
+        'powered_by' => 'พัฒนาโดย Owr Digi',
     ],
 
     'home' => [

@@ -23,6 +23,12 @@
     <div id="content" class="w-100">
         <nav class="navbar navbar-expand navbar-light bg-light p-3">
             <button class="btn btn-dark" id="sidebarToggle"><i class="fas fa-bars"></i></button>
+            
+            <!-- View Site Button -->
+            <a href="{{ url('/') }}" target="_blank" class="btn btn-outline-primary ms-3" title="Voir le site">
+                <i class="bi bi-box-arrow-up-right me-1"></i> Voir le site
+            </a>
+            
             <!-- Language Change Dropdown -->
             <div class="dropdown ms-auto me-3">
                 <button class="btn btn-light dropdown-toggle" data-bs-toggle="dropdown">
@@ -51,23 +57,37 @@
                 </ul>
             </div>
              <div class="dropdown">
-                <button class="btn btn-light dropdown-toggle" data-bs-toggle="dropdown">
-                   <img src="{{ auth()->user()->profile_image
-                        ? (\Illuminate\Support\Str::startsWith(auth()->user()->profile_image, ['http://', 'https://'])
-                            ? auth()->user()->profile_image
-                            : asset('storage/' . auth()->user()->profile_image))
-                        : 'https://ui-avatars.com/api/?name=' . urlencode(auth()->user()->name) . '&background=0d6efd&color=fff&size=40' }}"
-                        class="rounded-circle"
-                        alt="Profile"
-                        width="40"
-                        height="40"
-                        style="object-fit:cover;">
+                @php $admin = auth()->user(); @endphp
+                <button class="btn btn-light dropdown-toggle d-flex align-items-center" data-bs-toggle="dropdown">
+                   @if($admin->profile_image)
+                        <img src="{{ \Illuminate\Support\Str::startsWith($admin->profile_image, ['http://', 'https://']) ? $admin->profile_image : asset('storage/' . $admin->profile_image) }}"
+                            class="rounded-circle me-2" alt="Profile" width="32" height="32" style="object-fit:cover;">
+                   @else
+                        <span class="d-inline-flex align-items-center justify-content-center rounded-circle text-white fw-bold me-2" style="width:32px; height:32px; background-color:#dc3545; font-size:12px;">
+                            {{ strtoupper(substr($admin->name, 0, 2)) }}
+                        </span>
+                   @endif
+                   <span class="d-none d-md-inline">{{ $admin->name }}</span>
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3">
+                    <li class="dropdown-header">
+                        <strong>{{ $admin->name }}</strong>
+                        <br><small class="text-danger"><i class="bi bi-shield-check me-1"></i>Administrateur</small>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
                     <li>
-                        <a class="dropdown-item d-flex align-items-center" 
-                        href="{{ route('admin.profile.edit') }}">
-                            <i class="bi bi-person-circle me-2"></i> Profile
+                        <a class="dropdown-item d-flex align-items-center" href="{{ route('admin.dashboard') }}">
+                            <i class="bi bi-speedometer2 me-2"></i> Tableau de bord
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item d-flex align-items-center" href="{{ route('admin.profile.edit') }}">
+                            <i class="bi bi-person-circle me-2"></i> Mon profil
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item d-flex align-items-center" href="{{ url('/') }}" target="_blank">
+                            <i class="bi bi-box-arrow-up-right me-2"></i> Voir le site
                         </a>
                     </li>
                     <li><hr class="dropdown-divider"></li>
@@ -75,9 +95,9 @@
                         <form id="admin-logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
                             @csrf
                         </form>
-                        <a class="dropdown-item d-flex align-items-center" href="#"
+                        <a class="dropdown-item d-flex align-items-center text-danger" href="#"
                         onclick="event.preventDefault(); document.getElementById('admin-logout-form').submit();">
-                            <i class="bi bi-box-arrow-right me-2"></i> Logout
+                            <i class="bi bi-box-arrow-right me-2"></i> Déconnexion
                         </a>
                     </li>
                 </ul>
@@ -102,17 +122,30 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('cms.languages.cancel') }}</button>
                     <button type="button" id="confirmChange" class="btn btn-primary">{{ __('cms.languages.yes_change') }}</button>
-                </div>c
+                </div>
             </div>
         </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     @if (!App::environment('testing'))
         @vite(['resources/js/app.js'])
     @endif
     <script>
         document.addEventListener("DOMContentLoaded", function () {
+            // Sidebar Toggle
+            const sidebarToggle = document.getElementById("sidebarToggle");
+            const sidebar = document.getElementById("sidebar");
+            const content = document.getElementById("content");
+            
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener("click", function () {
+                    sidebar.classList.toggle("collapsed");
+                    content.classList.toggle("expanded");
+                });
+            }
+
+            // Search functionality
             const searchInput = document.getElementById("searchInput");
             const menuItems = document.querySelectorAll(".nav-item");
             searchInput.addEventListener("input", function () {
@@ -149,6 +182,12 @@
                         }
                     }
                 });
+            });
+
+            // Initialize all dropdowns
+            var dropdownElementList = [].slice.call(document.querySelectorAll('.dropdown-toggle'));
+            dropdownElementList.forEach(function (dropdownToggleEl) {
+                new bootstrap.Dropdown(dropdownToggleEl);
             });
         });
     </script>

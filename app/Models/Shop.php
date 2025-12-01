@@ -11,7 +11,8 @@ class Shop extends Model
     use HasFactory;
 
     protected $fillable = [
-        'seller_id', 'name', 'slug', 'logo', 'description', 'status',
+        'vendor_id', 'name', 'slug', 'logo', 'description', 'status', 'banner', 'address', 'phone',
+        'hero_title', 'hero_subtitle', 'hero_button_text', 'hero_button_link', 'hero_background', 'hero_text_color',
     ];
 
     public static function boot()
@@ -21,5 +22,29 @@ class Shop extends Model
         static::creating(function ($shop) {
             $shop->slug = Str::slug($shop->name);
         });
+    }
+
+    /**
+     * Get the vendor that owns the shop.
+     */
+    public function vendor()
+    {
+        return $this->belongsTo(Vendor::class);
+    }
+
+    /**
+     * Get all products in this shop.
+     */
+    public function products()
+    {
+        return $this->hasMany(Product::class);
+    }
+
+    /**
+     * Check if shop is approved.
+     */
+    public function isApproved(): bool
+    {
+        return $this->status === 'approved';
     }
 }

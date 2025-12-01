@@ -16,7 +16,7 @@ return [
         'follow_us' => 'Siga-nos',
         'footer_logo_alt' => 'Logo do Rodapé Velstore',
         'copyright' => '© 2025 Velstore Demo. Todos os direitos reservados.',
-        'powered_by' => 'Desenvolvido por Velstore Labs',
+        'powered_by' => 'Desenvolvido por Owr Digi',
     ],
 
     'home' => [

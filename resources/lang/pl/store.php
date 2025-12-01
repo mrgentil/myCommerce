@@ -16,7 +16,7 @@ return [
         'follow_us' => 'Śledź nas',
         'footer_logo_alt' => 'Logo stopki Velstore',
         'copyright' => '© 2025 Velstore Demo. Wszelkie prawa zastrzeżone.',
-        'powered_by' => 'Zasilane przez Velstore Labs',
+        'powered_by' => 'Zasilane przez Owr Digi',
     ],
 
     'home' => [
