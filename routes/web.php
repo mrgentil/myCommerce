@@ -174,8 +174,10 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
     /* Profile */
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-});
 
-Route::get('site-settings', [SiteSettingsController::class, 'index'])->name('site-settings.index');
-Route::get('site-settings/edit', [SiteSettingsController::class, 'edit'])->name('admin.site-settings.edit');
-Route::put('site-settings/update', [SiteSettingsController::class, 'update'])->name('admin.site-settings.update');
+    /* Site Settings */
+    Route::get('site-settings', [SiteSettingsController::class, 'index'])->name('site-settings.index');
+    Route::get('site-settings/edit', [SiteSettingsController::class, 'edit'])->name('site-settings.edit');
+    Route::post('site-settings/update', [SiteSettingsController::class, 'update'])->name('site-settings.update');
+    Route::post('site-settings/remove-logo', [SiteSettingsController::class, 'removeLogo'])->name('site-settings.remove-logo');
+});

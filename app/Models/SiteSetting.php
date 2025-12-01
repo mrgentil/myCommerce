@@ -15,6 +15,9 @@ class SiteSetting extends Model
     // The attributes that are mass assignable
     protected $fillable = [
         'site_name',
+        'logo',
+        'logo_dark',
+        'favicon',
         'tagline',
         'meta_title',
         'meta_description',

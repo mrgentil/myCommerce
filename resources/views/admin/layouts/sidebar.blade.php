@@ -246,9 +246,9 @@
                 <span><i class="fas fa-cog me-2"></i> <span>{{ __('cms.sidebar.site_settings.title') }}</span></span>
                 <i class="fas fa-chevron-down"></i>
             </a>
-            <div class="collapse {{ Route::currentRouteName() == 'site-settings.index' ? 'show' : '' }}" id="siteSettingsMenu">
+            <div class="collapse {{ Route::currentRouteName() == 'admin.site-settings.index' ? 'show' : '' }}" id="siteSettingsMenu">
                 <ul class="nav flex-column ms-3">
-                    <li><a class="nav-link {{ Route::currentRouteName() == 'site-settings.index' ? 'active' : '' }}" href="{{ route('site-settings.index') }}">{{ __('cms.sidebar.site_settings.manage') }}</a></li>
+                    <li><a class="nav-link {{ Route::currentRouteName() == 'admin.site-settings.index' ? 'active' : '' }}" href="{{ route('admin.site-settings.index') }}">{{ __('cms.sidebar.site_settings.manage') }}</a></li>
                 </ul>
             </div>
         </li>
