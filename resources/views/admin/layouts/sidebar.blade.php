@@ -241,6 +241,55 @@
             </ul>
         </div>
     </li>
+        <!-- MARKETPLACE FEATURES -->
+        <li class="nav-item mt-3">
+            <small class="text-muted px-3">MARKETPLACE</small>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {{ str_contains(Route::currentRouteName(), 'flash-sales') ? 'active' : '' }}" href="{{ route('admin.flash-sales.index') }}">
+                <i class="fas fa-bolt me-2"></i> <span>Ventes Flash</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {{ str_contains(Route::currentRouteName(), 'disputes') ? 'active' : '' }}" href="{{ route('admin.disputes.index') }}">
+                <i class="fas fa-gavel me-2"></i> <span>Litiges</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {{ str_contains(Route::currentRouteName(), 'admin.returns') ? 'active' : '' }}" href="{{ route('admin.returns.index') }}">
+                <i class="fas fa-undo me-2"></i> <span>Retours</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {{ str_contains(Route::currentRouteName(), 'badges') ? 'active' : '' }}" href="{{ route('admin.badges.index') }}">
+                <i class="fas fa-award me-2"></i> <span>Badges Vendeur</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {{ str_contains(Route::currentRouteName(), 'gift-cards') ? 'active' : '' }}" href="{{ route('admin.gift-cards.index') }}">
+                <i class="fas fa-gift me-2"></i> <span>Cartes Cadeaux</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {{ str_contains(Route::currentRouteName(), 'loyalty') ? 'active' : '' }}" href="{{ route('admin.loyalty.index') }}">
+                <i class="fas fa-coins me-2"></i> <span>Fidélité</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {{ str_contains(Route::currentRouteName(), 'admin.notifications') ? 'active' : '' }}" href="{{ route('admin.notifications.index') }}">
+                <i class="fas fa-bell me-2"></i> <span>Notifications</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {{ str_contains(Route::currentRouteName(), 'reviews-moderation') ? 'active' : '' }}" href="{{ route('admin.reviews-moderation.index') }}">
+                <i class="fas fa-star-half-alt me-2"></i> <span>Modération Avis</span>
+            </a>
+        </li>
+        <!-- END MARKETPLACE -->
+
+        <li class="nav-item mt-3">
+            <small class="text-muted px-3">PARAMÈTRES</small>
+        </li>
         <li class="nav-item">
             <a class="nav-link d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#siteSettingsMenu" role="button" aria-expanded="false" aria-controls="siteSettingsMenu">
                 <span><i class="fas fa-cog me-2"></i> <span>{{ __('cms.sidebar.site_settings.title') }}</span></span>

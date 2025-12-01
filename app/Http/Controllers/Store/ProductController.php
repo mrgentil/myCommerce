@@ -5,36 +5,35 @@ namespace App\Http\Controllers\Store;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\ProductVariant;
+use App\Services\RecentlyViewedService;
+use App\Services\RecommendationService;
 use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
-    /*public function show($slug)
-    {
-        $product = Product::where('slug', $slug)
-        ->with(['translation', 'thumbnail', 'reviews'])
-        ->withCount('reviews')
-        ->withAvg('reviews', 'rating')
-        ->firstOrFail();
-        return view('themes.xylo.product-detail', compact('product'));
-    }*/
-
     public function show($slug)
     {
         $product = Product::with([
             'attributeValues.attribute',
             'attributeValues.translations',
             'translations',
-            'reviews',
+            'reviews.customer',
+            'reviews.images',
             'primaryVariant',
             'variants.attributeValues',
             'images',
             'category.translation',
             'category.parent.translation',
+            'vendor.shop',
+            'questions.answers',
+            'questions.customer',
         ])->withAvg('reviews', 'rating')
             ->withCount('reviews')
             ->where('slug', $slug)
             ->firstOrFail();
+
+        // Track recently viewed
+        RecentlyViewedService::add($product->id);
 
         $primaryVariant = $product->variants()->where('is_primary', true)->first();
         $inStock = $primaryVariant && $primaryVariant->stock > 0;
@@ -56,7 +55,15 @@ class ProductController extends Controller
 
         $breadcrumbs = array_reverse($breadcrumbs);
 
-        return view('themes.xylo.product-detail', compact('product', 'inStock', 'variantMap', 'breadcrumbs'));
+        // Get recommendations
+        $similarProducts = RecommendationService::getSimilarProducts($product, 8);
+        $alsoBought = RecommendationService::getAlsoBought($product, 6);
+        $recentlyViewed = RecentlyViewedService::get(6, $product->id);
+
+        return view('themes.xylo.product-detail', compact(
+            'product', 'inStock', 'variantMap', 'breadcrumbs',
+            'similarProducts', 'alsoBought', 'recentlyViewed'
+        ));
     }
 
     public function getVariantPrice(Request $request)

@@ -41,6 +41,22 @@ class Shop extends Model
     }
 
     /**
+     * Get shop followers
+     */
+    public function followers()
+    {
+        return $this->hasMany(ShopFollower::class);
+    }
+
+    /**
+     * Get followers as customers
+     */
+    public function followerCustomers()
+    {
+        return $this->belongsToMany(Customer::class, 'shop_followers');
+    }
+
+    /**
      * Check if shop is approved.
      */
     public function isApproved(): bool

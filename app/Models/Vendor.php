@@ -11,13 +11,20 @@ class Vendor extends Authenticatable
 
     protected $guard = 'vendor';
 
-    protected $fillable = ['name', 'email', 'password', 'phone', 'status', 'profile_image', 'commission_rate'];
+    protected $fillable = [
+        'name', 'email', 'password', 'phone', 'status', 'profile_image', 'commission_rate',
+        'is_verified', 'verified_at', 'total_sales', 'total_orders', 'avg_rating'
+    ];
 
     protected $hidden = ['password'];
 
     protected $casts = [
         'password' => 'hashed',
         'commission_rate' => 'decimal:2',
+        'is_verified' => 'boolean',
+        'verified_at' => 'datetime',
+        'total_sales' => 'decimal:2',
+        'avg_rating' => 'decimal:2',
     ];
 
     /**
@@ -34,6 +41,16 @@ class Vendor extends Authenticatable
     public function products()
     {
         return $this->hasMany(Product::class);
+    }
+
+    /**
+     * Get vendor badges
+     */
+    public function badges()
+    {
+        return $this->belongsToMany(VendorBadge::class, 'vendor_badge_assignments', 'vendor_id', 'badge_id')
+            ->withPivot(['awarded_at', 'expires_at'])
+            ->withTimestamps();
     }
 
     /**

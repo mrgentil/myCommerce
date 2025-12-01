@@ -23,6 +23,14 @@ use App\Http\Controllers\Admin\SocialMediaLinkController;
 use App\Http\Controllers\Admin\VendorController;
 use App\Http\Controllers\Admin\ShopController;
 use App\Http\Controllers\Admin\HeroSlideController;
+use App\Http\Controllers\Admin\FlashSaleController;
+use App\Http\Controllers\Admin\DisputeController;
+use App\Http\Controllers\Admin\ReturnController as AdminReturnController;
+use App\Http\Controllers\Admin\VendorBadgeController;
+use App\Http\Controllers\Admin\GiftCardController;
+use App\Http\Controllers\Admin\LoyaltyController;
+use App\Http\Controllers\Admin\NotificationController as AdminNotificationController;
+use App\Http\Controllers\Admin\ReviewController as AdminReviewController;
 use App\Http\Controllers\SiteSettingsController;
 use Illuminate\Support\Facades\Route;
 
@@ -36,8 +44,6 @@ use Illuminate\Support\Facades\Route;
 | be assigned to the "web" middleware group. Make something great!
 |
 */
-
-require base_path('routes/store.php');
 
 Route::get('/login', function () {
     return view('admin.auth.login');
@@ -180,4 +186,74 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
     Route::get('site-settings/edit', [SiteSettingsController::class, 'edit'])->name('site-settings.edit');
     Route::post('site-settings/update', [SiteSettingsController::class, 'update'])->name('site-settings.update');
     Route::post('site-settings/remove-logo', [SiteSettingsController::class, 'removeLogo'])->name('site-settings.remove-logo');
+
+    /* ============ MARKETPLACE FEATURES ============ */
+
+    /* Flash Sales */
+    Route::get('flash-sales', [FlashSaleController::class, 'index'])->name('flash-sales.index');
+    Route::get('flash-sales/create', [FlashSaleController::class, 'create'])->name('flash-sales.create');
+    Route::post('flash-sales', [FlashSaleController::class, 'store'])->name('flash-sales.store');
+    Route::get('flash-sales/{id}/edit', [FlashSaleController::class, 'edit'])->name('flash-sales.edit');
+    Route::put('flash-sales/{id}', [FlashSaleController::class, 'update'])->name('flash-sales.update');
+    Route::delete('flash-sales/{id}', [FlashSaleController::class, 'destroy'])->name('flash-sales.destroy');
+    Route::post('flash-sales/{id}/products', [FlashSaleController::class, 'addProduct'])->name('flash-sales.add-product');
+    Route::delete('flash-sales/{id}/products/{productId}', [FlashSaleController::class, 'removeProduct'])->name('flash-sales.remove-product');
+
+    /* Disputes */
+    Route::get('disputes', [DisputeController::class, 'index'])->name('disputes.index');
+    Route::get('disputes/{id}', [DisputeController::class, 'show'])->name('disputes.show');
+    Route::post('disputes/{id}/message', [DisputeController::class, 'addMessage'])->name('disputes.message');
+    Route::post('disputes/{id}/status', [DisputeController::class, 'updateStatus'])->name('disputes.status');
+    Route::post('disputes/{id}/resolve', [DisputeController::class, 'resolve'])->name('disputes.resolve');
+
+    /* Returns Management */
+    Route::get('returns', [AdminReturnController::class, 'index'])->name('returns.index');
+    Route::get('returns/{id}', [AdminReturnController::class, 'show'])->name('returns.show');
+    Route::post('returns/{id}/status', [AdminReturnController::class, 'updateStatus'])->name('returns.status');
+
+    /* Vendor Badges */
+    Route::get('badges', [VendorBadgeController::class, 'index'])->name('badges.index');
+    Route::get('badges/create', [VendorBadgeController::class, 'create'])->name('badges.create');
+    Route::post('badges', [VendorBadgeController::class, 'store'])->name('badges.store');
+    Route::get('badges/{id}/edit', [VendorBadgeController::class, 'edit'])->name('badges.edit');
+    Route::put('badges/{id}', [VendorBadgeController::class, 'update'])->name('badges.update');
+    Route::delete('badges/{id}', [VendorBadgeController::class, 'destroy'])->name('badges.destroy');
+    Route::get('badges/assignments', [VendorBadgeController::class, 'assignments'])->name('badges.assignments');
+    Route::post('badges/assign', [VendorBadgeController::class, 'assignBadge'])->name('badges.assign');
+    Route::post('badges/remove', [VendorBadgeController::class, 'removeBadge'])->name('badges.remove');
+    Route::post('vendors/{id}/verify', [VendorBadgeController::class, 'verifyVendor'])->name('vendors.verify');
+
+    /* Gift Cards */
+    Route::get('gift-cards', [GiftCardController::class, 'index'])->name('gift-cards.index');
+    Route::get('gift-cards/create', [GiftCardController::class, 'create'])->name('gift-cards.create');
+    Route::post('gift-cards', [GiftCardController::class, 'store'])->name('gift-cards.store');
+    Route::get('gift-cards/{id}', [GiftCardController::class, 'show'])->name('gift-cards.show');
+    Route::post('gift-cards/{id}/toggle', [GiftCardController::class, 'toggleStatus'])->name('gift-cards.toggle');
+    Route::post('gift-cards/{id}/adjust', [GiftCardController::class, 'adjustBalance'])->name('gift-cards.adjust');
+
+    /* Loyalty Program */
+    Route::get('loyalty', [LoyaltyController::class, 'index'])->name('loyalty.index');
+    Route::get('loyalty/rewards/create', [LoyaltyController::class, 'createReward'])->name('loyalty.rewards.create');
+    Route::post('loyalty/rewards', [LoyaltyController::class, 'storeReward'])->name('loyalty.rewards.store');
+    Route::get('loyalty/rewards/{id}/edit', [LoyaltyController::class, 'editReward'])->name('loyalty.rewards.edit');
+    Route::put('loyalty/rewards/{id}', [LoyaltyController::class, 'updateReward'])->name('loyalty.rewards.update');
+    Route::delete('loyalty/rewards/{id}', [LoyaltyController::class, 'deleteReward'])->name('loyalty.rewards.delete');
+    Route::post('loyalty/add-points', [LoyaltyController::class, 'addPoints'])->name('loyalty.add-points');
+    Route::get('loyalty/customers/{id}', [LoyaltyController::class, 'customerHistory'])->name('loyalty.customer-history');
+
+    /* Notifications */
+    Route::get('notifications', [AdminNotificationController::class, 'index'])->name('notifications.index');
+    Route::get('notifications/create', [AdminNotificationController::class, 'create'])->name('notifications.create');
+    Route::post('notifications/send', [AdminNotificationController::class, 'send'])->name('notifications.send');
+
+    /* Reviews Moderation */
+    Route::get('reviews-moderation', [AdminReviewController::class, 'index'])->name('reviews-moderation.index');
+    Route::get('reviews-moderation/{id}', [AdminReviewController::class, 'show'])->name('reviews-moderation.show');
+    Route::post('reviews-moderation/{id}/approve', [AdminReviewController::class, 'approve'])->name('reviews-moderation.approve');
+    Route::post('reviews-moderation/{id}/reject', [AdminReviewController::class, 'reject'])->name('reviews-moderation.reject');
+    Route::delete('reviews-moderation/{id}', [AdminReviewController::class, 'destroy'])->name('reviews-moderation.destroy');
+    Route::post('reviews-moderation/bulk', [AdminReviewController::class, 'bulkAction'])->name('reviews-moderation.bulk');
 });
+
+// Store routes MUST be loaded LAST (contains catch-all route for dynamic pages)
+require base_path('routes/store.php');

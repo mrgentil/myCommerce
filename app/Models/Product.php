@@ -95,6 +95,14 @@ class Product extends Model
         return $this->reviews()->avg('rating') ?: 0;
     }
 
+    /**
+     * Get product name from translation
+     */
+    public function getNameAttribute()
+    {
+        return $this->translation?->name ?? $this->getTranslation('name', 'en') ?? 'Produit #'.$this->id;
+    }
+
     public function getConvertedPriceAttribute()
     {
         return convert_price($this->price);

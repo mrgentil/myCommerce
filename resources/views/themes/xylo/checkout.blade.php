@@ -114,9 +114,20 @@
 
                         <!-- Submit Button -->
                         <div class="mt-4">
-                            <button type="submit" id="place-order" class="btn btn-primary w-100">{{ __('store.checkout.place_order') }}</button>
+                            <button type="submit" id="place-order" class="btn btn-primary w-100">
+                                <span class="spinner-border spinner-border-sm me-2 d-none" id="btnSpinner"></span>
+                                {{ __('store.checkout.place_order') }}
+                            </button>
                         </div>
                     </form>
+
+                    <!-- Cash on Delivery option -->
+                    @if(!$paymentGateways->count())
+                        <div class="alert alert-warning mt-3">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            Aucun mode de paiement n'est configuré. Veuillez contacter l'administrateur.
+                        </div>
+                    @endif
                 </div>
 
                 <div class="col-md-5 mt-5 mt-md-0">
@@ -151,102 +162,43 @@
 
 @section('js')
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-<?php /* ?>
-<script src="https://js.stripe.com/v3/"></script>
-<script>
-document.addEventListener("DOMContentLoaded", async () => {
-    // Fetch keys from backend
-    let response = await fetch("{{ route('stripe.checkout.process') }}");
-    let data = await response.json();
-
-    let stripe = Stripe(data.publicKey);
-    let elements = stripe.elements();
-    let cardElement = elements.create('card');
-    cardElement.mount('#card-element');
-
-    document.querySelector('#checkout-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
-
-        const {error, paymentIntent} = await stripe.confirmCardPayment(data.clientSecret, {
-            payment_method: {
-                card: cardElement
-            }
-        });
-
-        if (error) {
-            alert(error.message);
-        } else if (paymentIntent.status === 'succeeded') {
-            alert("Payment successful!");
-            window.location.href = "/order/success";
-        }
-    });
-});
-</script>
-
 
 @if($paypalClientId)
-    <script src="https://www.paypal.com/sdk/js?client-id={{ $paypalClientId }}&currency=USD"></script>
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            if (typeof paypal !== "undefined") {
-                paypal.Buttons({
-                    createOrder: function(data, actions) {
-                        return actions.order.create({
-                            purchase_units: [{ amount: { value: "{{ $total }}" } }]
-                        });
-                    },
-                    onApprove: function(data, actions) {
-                        return actions.order.capture().then(function(details) {
-                            fetch("{{ route('checkout.process') }}", {
-                                method: "POST",
-                                headers: {"X-CSRF-TOKEN": "{{ csrf_token() }}"},
-                                body: JSON.stringify({
-                                    gateway: "paypal",
-                                    order_id: data.orderID
-                                })
-                            });
-                        });
-                    }
-                }).render('#paypal-button-container');
-            } else {
-                console.error("PayPal SDK not loaded");
-            }
-        });
-    </script>
+<script src="https://www.paypal.com/sdk/js?client-id={{ $paypalClientId }}&currency=EUR"></script>
 @endif
-<?php */ ?>
-<script src="https://www.paypal.com/sdk/js?client-id={{ $paypalClientId }}&currency=USD"></script>
+
+@if($stripePublicKey ?? false)
 <script src="https://js.stripe.com/v3/"></script>
+@endif
+
 <script>
 document.addEventListener("DOMContentLoaded", function () {
+    const form = document.getElementById("checkout-form");
     const gatewayRadios = document.querySelectorAll('input[name="gateway"]');
     const paypalContainer = document.getElementById("paypal-button-container");
     const stripeContainer = document.getElementById("card-element");
     const placeOrderBtn = document.getElementById("place-order");
+    const btnSpinner = document.getElementById("btnSpinner");
 
-    let stripe = Stripe("asdasd");
+    // Stripe setup
+    @if($stripePublicKey ?? false)
+    let stripe = Stripe("{{ $stripePublicKey }}");
     let elements = stripe.elements();
     let card = elements.create("card");
     card.mount("#card-element");
+    @endif
 
-    // Show correct payment fields
+    // Show/hide payment fields based on selected gateway
     gatewayRadios.forEach(radio => {
         radio.addEventListener("change", function () {
-            if (this.value === "paypal") {
-                paypalContainer.style.display = "block";
-                stripeContainer.style.display = "none";
-            } else if (this.value === "stripe") {
-                stripeContainer.style.display = "block";
-                paypalContainer.style.display = "none";
-            } else {
-                paypalContainer.style.display = "none";
-                stripeContainer.style.display = "none";
-            }
+            if (paypalContainer) paypalContainer.style.display = this.value === "paypal" ? "block" : "none";
+            if (stripeContainer) stripeContainer.style.display = this.value === "stripe" ? "block" : "none";
         });
     });
 
     // PayPal integration
-    if (typeof paypal !== "undefined") {
+    @if($paypalClientId)
+    if (typeof paypal !== "undefined" && paypalContainer) {
         paypal.Buttons({
             createOrder: function (data, actions) {
                 return actions.order.create({
@@ -255,34 +207,44 @@ document.addEventListener("DOMContentLoaded", function () {
             },
             onApprove: function (data, actions) {
                 return actions.order.capture().then(function (details) {
-                    // Send to backend
-                    fetch("{{ route('checkout.process') }}", {
-                        method: "POST",
-                        headers: {
-                            "X-CSRF-TOKEN": "{{ csrf_token() }}",
-                            "Content-Type": "application/json"
-                        },
-                        body: JSON.stringify({
-                            gateway: "paypal",
-                            order_id: data.orderID,
-                            details: details
-                        })
-                    }).then(res => res.json()).then(result => {
-                        window.location.href = "/thank-you";
-                    });
+                    // Submit the form with PayPal data
+                    const hiddenInput = document.createElement('input');
+                    hiddenInput.type = 'hidden';
+                    hiddenInput.name = 'paypal_order_id';
+                    hiddenInput.value = data.orderID;
+                    form.appendChild(hiddenInput);
+
+                    // Set gateway to paypal
+                    document.querySelector('input[name="gateway"][value="paypal"]').checked = true;
+                    
+                    form.submit();
                 });
+            },
+            onError: function(err) {
+                toastr.error("Erreur PayPal: " + err.message);
             }
         }).render("#paypal-button-container");
     }
+    @endif
 
-    // Stripe integration
-    const form = document.getElementById("checkout-form");
+    // Form submission
     form.addEventListener("submit", async function (e) {
-        e.preventDefault();
+        const selectedGateway = document.querySelector('input[name="gateway"]:checked');
+        
+        if (!selectedGateway) {
+            e.preventDefault();
+            toastr.error("Veuillez sélectionner un mode de paiement");
+            return;
+        }
 
-        let selectedGateway = document.querySelector('input[name="gateway"]:checked').value;
+        // Show loading state
+        btnSpinner.classList.remove('d-none');
+        placeOrderBtn.disabled = true;
 
-        if (selectedGateway === "stripe") {
+        @if($stripePublicKey ?? false)
+        if (selectedGateway.value === "stripe") {
+            e.preventDefault();
+            
             const {paymentMethod, error} = await stripe.createPaymentMethod({
                 type: "card",
                 card: card,
@@ -290,27 +252,24 @@ document.addEventListener("DOMContentLoaded", function () {
 
             if (error) {
                 document.getElementById("card-errors").textContent = error.message;
-            } else {
-                // Send paymentMethod.id + form data to backend
-                let formData = new FormData(form);
-                formData.append("payment_method_id", paymentMethod.id);
-
-                fetch("{{ route('checkout.process') }}", {
-                    method: "POST",
-                    headers: {"X-CSRF-TOKEN": "{{ csrf_token() }}"},
-                    body: formData
-                }).then(res => res.json()).then(result => {
-                    window.location.href = "/thank-you";
-                });
+                btnSpinner.classList.add('d-none');
+                placeOrderBtn.disabled = false;
+                return;
             }
-        } else if (selectedGateway === "paypal") {
-            alert("Please complete payment with PayPal button");
-        } else {
+
+            // Add payment method ID to form
+            const hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = 'stripe_payment_method';
+            hiddenInput.value = paymentMethod.id;
+            form.appendChild(hiddenInput);
+
             form.submit();
         }
+        @endif
+
+        // For COD and other methods, form submits normally
     });
 });
 </script>
-
-
 @endsection
